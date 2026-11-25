@@ -1,0 +1,14 @@
+{
+  "name": "clawd-theme",
+  "description": "Clawd Library, a reading-room theme for the Claude Code desktop app",
+  "owner": {
+    "name": "Eas00000n"
+  },
+  "plugins": [
+    {
+      "name": "clawd-library",
+      "source": "./",
+      "description": "A reading-room theme for the Claude Code desktop app: an animated backdrop of an AI girl and Clawd, a live usage card, and a sticker tray of common prompts"
+    }
+  ]
+}
