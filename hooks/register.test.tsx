@@ -387,3 +387,26 @@ test('the sticker button above the prompt opens her stickers; a caption fills th
   expect(await ui.find({ type: 'Button', key: 's-go' })).toBe(undefined)
   await ui.unmount()
 })
+
+test('/clawd-theme status reports versions, apps, whether the theme draws, and backdrop requests', async ($, on) => {
+  engine(on, [])
+  on('session.version', () => ({ value: { version: '2.1.330' } }))
+  on('session.info', () => ({ value: { platform: 'windows', transcriptPath: '/t.jsonl' } as any }))
+  on('session.surfaces', () => ({ value: [] }))
+  await $.session.start({ cwd: '/', surface: 'desktop', isInteractive: true })
+
+  let text = (await $.command.run({ command: 'clawd-theme', args: 'status' } as any)).text ?? ''
+  expect(text.includes('Clawd Library 1.0.1')).toBe(true)
+  expect(text.includes('Claude Code: 2.1.330 · platform: windows')).toBe(true)
+  expect(text.includes('Apps attached: none')).toBe(true)
+  expect(text.includes('Theme: set, an app draws themes')).toBe(true)
+  expect(text.includes('Backdrop asked to draw: 0 times')).toBe(true)
+  expect(text.includes('has not asked for the backdrop')).toBe(true)
+
+  const ui = await $.ui.mount(BACKDROP)
+  await ui.unmount()
+  text = (await $.command.run({ command: 'clawd-theme', args: 'status' } as any)).text ?? ''
+  expect(/Backdrop asked to draw: [1-9]/.test(text)).toBe(true)
+  expect(text.includes('last on desktop')).toBe(true)
+  expect(text.includes('has not asked')).toBe(false)
+})

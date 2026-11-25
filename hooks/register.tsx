@@ -28,6 +28,8 @@ const SCENE_NAME = 'reading-room'
 const LAYOUT_KEY = 'layout'
 const LIMIT_KEY = 'contextLimit'
 const OFF_KEY = 'themeOff'
+/** This build's version, for /clawd-theme status. */
+export const VERSION = '1.0.1'
 
 // Change a tag when its value's fields change: it declines what an earlier
 // version stored, which outlives a reload.
@@ -252,11 +254,52 @@ async function applyLook($: EngineInterface): Promise<void> {
   }
 
   // At session start the app often has not attached yet: the theme stands and draws once it does,
-  // so that is no news for the status line. Clear any line an earlier version left there.
+  // so that is no news. Keep it for /clawd-theme status, and clear a line an earlier version left.
   $.ui.status(undefined)
-  if (!set.isDrawn) {
-    $.ui.log(`theme set, not drawn yet: ${set.reason}`)
+  diag.lastSet = set.isDrawn ? { isDrawn: true } : { isDrawn: false, reason: set.reason }
+}
+
+// What /clawd-theme status reports: what this session's engine and app have done with the theme.
+const diag = {
+  lastSet: undefined as undefined | { isDrawn: boolean; reason?: string },
+  backdropAsks: 0,
+  backdropSurface: undefined as string | undefined,
+}
+
+/** What /clawd-theme status says: enough for someone else to tell why the backdrop is missing. */
+async function statusText($: EngineInterface): Promise<string> {
+  const off = (await $.store.get(OFF_KEY)) === true
+  let version = 'unknown'
+  let platform = 'unknown'
+  let surfaces: readonly string[] = []
+  try {
+    version = (await $.session.version()).version
+  } catch {}
+  try {
+    platform = (await $.session.info()).platform ?? 'unknown'
+  } catch {}
+  try {
+    surfaces = await $.session.surfaces()
+  } catch {}
+  if (!off) {
+    // Set it again to ask where it stands now, not at session start.
+    await applyLook($)
   }
+  const set = diag.lastSet
+  const { limit, source } = contextLimitOf(await read($, usage), await read($, contextLimit))
+  return [
+    `Clawd Library ${VERSION}`,
+    `Claude Code: ${version} · platform: ${platform}`,
+    `Apps attached: ${surfaces.length ? surfaces.join(', ') : 'none'}`,
+    `Theme: ${off ? 'off (/clawd-theme on)' : set === undefined ? 'not set' : set.isDrawn ? 'set, an app draws themes' : `set, not drawn: ${set.reason}`}`,
+    `Backdrop asked to draw: ${diag.backdropAsks} time${diag.backdropAsks === 1 ? '' : 's'} this session${diag.backdropSurface ? ` (last on ${diag.backdropSurface})` : ''}`,
+    `Context limit: ${limit !== undefined ? tokens(limit) : 'not known yet'} (${source})`,
+    diag.backdropAsks === 0 && !off
+      ? 'The app has not asked for the backdrop yet: it may not draw backdrop scenes on this platform or version.'
+      : '',
+  ]
+    .filter(Boolean)
+    .join('\n')
 }
 
 export const register: Register = on => {
@@ -275,7 +318,7 @@ export const register: Register = on => {
     await $.command.register({
       name: 'clawd-theme',
       description: 'Turn the Clawd library look on or off (off is the app\'s own look)',
-      argumentHint: '<on | off>',
+      argumentHint: '<on | off | status>',
     })
 
     await $.command.register({ name: 'usage-pane', description: 'Show context and plan usage in a side pane' })
@@ -317,7 +360,10 @@ export const register: Register = on => {
       return { text: 'Clawd library look on.' }
     }
     const off = (await $.store.get(OFF_KEY)) === true
-    return { text: `The Clawd library look is ${off ? 'off' : 'on'}. Use /clawd-theme on or /clawd-theme off.` }
+    if (arg === 'status') {
+      return { text: await statusText($) }
+    }
+    return { text: `The Clawd library look is ${off ? 'off' : 'on'}. Use /clawd-theme on, off or status.` }
   })
 
   on('command.run', { command: 'usage-pane' }, async $ => {
@@ -400,6 +446,8 @@ export const register: Register = on => {
       return next(e)
     }
     const { Svg } = $.ui.resolve(e)
+    diag.backdropAsks++
+    diag.backdropSurface = e.surface
     const now = await $.clock.now()
     const rows = rowsOf(await read($, usage), now, await read($, contextLimit))
     const isWorking = await read($, working)

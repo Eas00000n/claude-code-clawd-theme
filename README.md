@@ -27,6 +27,8 @@ reading and Clawd on a stack of books, a live usage card, and a sticker tray of 
 
 - Claude Code **2.1.330 or later**. The backdrop, card and stickers draw in the **desktop app** (and the mobile app); the terminal draws no themes.
   需要 Claude Code 2.1.330 或更新版本。背景、卡片和表情包只在桌面 App（和手机 App）里显示，终端不显示主题。
+- Developed and tested on macOS. Windows is not confirmed yet: if the colors and stickers work but the backdrop doesn't, run `/clawd-theme status` and open an issue with its output.
+  在 macOS 上开发和测试，Windows 尚未确认：如果颜色和表情包正常但背景不显示，请运行 `/clawd-theme status` 并把输出贴到 issue 里。
 
 ## Install · 安装
 
@@ -56,6 +58,7 @@ Sessions that were already open pick it up after `/reload-plugins`.
 | Command | What it does |
 | --- | --- |
 | `/clawd-theme on \| off` | Turn the look on, or back to the app's own look. 开关主题 |
+| `/clawd-theme status` | Show versions, platform and whether the app draws the backdrop: paste it into an issue if the girl and Clawd don't appear. 显示版本、平台、背景是否被绘制；背景不出现时请附上这段输出 |
 | `/clawd-layout` | Open the Layout pane: drag figures, or use the buttons. 打开布局面板 |
 | `/clawd-context 400k \| auto` | Set the context limit by hand, or detect the auto-compact window. 手动设置或自动识别 context 上限 |
 | `/usage-pane` | Show the usage in a side pane. 在侧边栏显示用量 |

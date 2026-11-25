@@ -1,6 +1,6 @@
 {
   "name": "clawd-library",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A reading-room theme for the Claude Code desktop app: an animated backdrop of an AI girl and Clawd, a live usage card, and a sticker tray of common prompts",
   "author": { "name": "Eas00000n" },
   "homepage": "https://github.com/Eas00000n/claude-code-clawd-theme",
