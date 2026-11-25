@@ -10,6 +10,8 @@ reading and Clawd on a stack of books, a live usage card, and a sticker tray of 
 > **Unofficial fan work. Not affiliated with, endorsed by, or sponsored by Anthropic.**
 > 非官方粉丝作品，与 Anthropic 无关。
 
+![Clawd Library in the Claude Code desktop app, dark mode](docs/screenshot.png)
+
 ## Features · 功能
 
 - **Backdrop 背景**: cream and tangerine by day; deep night blue with a crescent moon and stars after dark. She breathes and blinks; while Claude is working she leans in to read and Clawd taps away.
