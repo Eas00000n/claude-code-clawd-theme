@@ -62,6 +62,7 @@ Sessions that were already open pick it up after `/reload-plugins`.
 | `/clawd-layout` | Open the Layout pane: drag figures, or use the buttons. 打开布局面板 |
 | `/clawd-context 400k \| auto` | Set the context limit by hand, or detect the auto-compact window. 手动设置或自动识别 context 上限 |
 | `/usage-pane` | Show the usage in a side pane. 在侧边栏显示用量 |
+| `/clawd-stickers zh-CN \| zh-TW` | Sticker captions in Simplified or Traditional Chinese (Taiwan wording). 表情包文字切换简体／繁体（台湾用语）；繁體請用 `/clawd-stickers zh-TW` |
 
 To change the sticker prompts, edit `hooks/stickers.ts` (entry *i* goes with picture *i* in `hooks/sticker-pics.ts`).
 想改表情包文字，编辑 `hooks/stickers.ts`。

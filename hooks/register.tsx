@@ -19,7 +19,8 @@ import { makeColors } from './make-colors.js'
 import type { DragMapPost, DragMapProps } from './drag-map'
 import { buildScene, DEFAULT_LAYOUT, FIGURES } from './scene'
 import { STICKER_PICS } from './sticker-pics'
-import { PAGE_SIZE, STICKERS } from './stickers'
+import { captionOf, langOf, PAGE_SIZE, STICKERS, TRAY_LABEL } from './stickers'
+import type { StickerLang } from './stickers'
 import type { CardRow } from './scene'
 
 const PANE = 'usage'
@@ -41,6 +42,9 @@ const layoutAtom = atom({ plugin: 'clawd-library', key: 'layout' } as const, DEF
 const target = atom({ plugin: 'clawd-library', key: 'layoutTarget' } as const, 'girl' as LayoutItem, { shape: 'target-1' })
 const step = atom({ plugin: 'clawd-library', key: 'layoutStep' } as const, 'normal' as string, { shape: 'step-1' })
 const stickersOpen = atom({ plugin: 'clawd-library', key: 'stickersOpen' } as const, false, { shape: 'stickers-1' })
+/** The sticker captions' language, set with /clawd-stickers and kept in the store. */
+const LANG_KEY = 'stickerLang'
+const stickerLang = atom({ plugin: 'clawd-library', key: 'stickerLang' } as const, 'zh-CN' as StickerLang, { shape: 'lang-1' })
 const stickerPage = atom({ plugin: 'clawd-library', key: 'stickerPage' } as const, 0, { shape: 'page-1' })
 const working = atom({ plugin: 'clawd-library', key: 'isWorking' } as const, false, { shape: 'working-1' })
 
@@ -337,6 +341,13 @@ export const register: Register = on => {
       description: 'Set the context limit the usage card measures against (auto detects auto-compact)',
       argumentHint: '<400k | 1m | auto>',
     })
+    const lang = langOf(await $.store.get(LANG_KEY)) ?? 'zh-CN'
+    await update($, stickerLang, () => lang)
+    await $.command.register({
+      name: 'clawd-stickers',
+      description: 'Sticker captions in Simplified (zh-CN) or Traditional Chinese (zh-TW)',
+      argumentHint: '<zh-CN | zh-TW>',
+    })
     syncTimer?.cancel()
     syncTimer = $.clock.every(SYNC_MS, () => void syncFromStore($).catch(() => undefined))
     const now = await $.session.usage()
@@ -364,6 +375,18 @@ export const register: Register = on => {
       return { text: await statusText($) }
     }
     return { text: `The Clawd library look is ${off ? 'off' : 'on'}. Use /clawd-theme on, off or status.` }
+  })
+
+  on('command.run', { command: 'clawd-stickers' }, async ($, e) => {
+    const lang = langOf(e.args)
+
+    if (lang === undefined) {
+      const now = await read($, stickerLang)
+      return { text: `Sticker captions are ${now}. Use /clawd-stickers zh-CN or /clawd-stickers zh-TW.` }
+    }
+    await update($, stickerLang, () => lang)
+    await $.store.set(LANG_KEY, lang)
+    return { text: `Sticker captions set to ${lang}, in this and new sessions.` }
   })
 
   on('command.run', { command: 'usage-pane' }, async $ => {
@@ -504,11 +527,12 @@ export const register: Register = on => {
     }
     const { Box, Button, Text } = $.ui.resolve(e)
     const open = await read($, stickersOpen)
+    const lang = await read($, stickerLang)
 
     if (!open) {
       return (
         <Box flexDirection="row">
-          <Button key="stickers" label="✿ 表情包" plain onPress={() => update($, stickersOpen, () => true)} />
+          <Button key="stickers" label={`✿ ${TRAY_LABEL[lang]}`} plain onPress={() => update($, stickersOpen, () => true)} />
         </Box>
       )
     }
@@ -535,12 +559,13 @@ export const register: Register = on => {
         <Box flexDirection="row" flexWrap="wrap" gap="sm">
           {shown.map(st => {
             const pic = STICKER_PICS[STICKERS.indexOf(st)]
+            const text = captionOf(st, lang)
             return (
               <Box key={`card-${st.key}`} flexDirection="column" alignItems="center" gap="xs">
                 {Svg !== undefined && pic !== undefined ? (
-                  <Svg source={stickerSvg(pic)} alt={st.text} width={96} height={Math.round((96 * (pic.h + 24)) / (pic.w + 24))} />
+                  <Svg source={stickerSvg(pic)} alt={text} width={96} height={Math.round((96 * (pic.h + 24)) / (pic.w + 24))} />
                 ) : null}
-                <Button key={st.key} label={st.text} onPress={pick(st.text)} />
+                <Button key={st.key} label={text} onPress={pick(text)} />
               </Box>
             )
           })}

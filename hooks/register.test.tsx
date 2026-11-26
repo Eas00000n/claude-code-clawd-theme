@@ -388,6 +388,42 @@ test('the sticker button above the prompt opens her stickers; a caption fills th
   await ui.unmount()
 })
 
+test('/clawd-stickers zh-TW shows Traditional Chinese captions, kept for the next session', async ($, on) => {
+  const fills: any[] = []
+  const stored: Record<string, unknown> = {}
+  engine(on, [], stored)
+  on('prompt.fill', (_: unknown, e: any) => {
+    fills.push(e)
+    return { isFilled: true }
+  })
+  await $.session.start({ cwd: '/', surface: 'desktop', isInteractive: true })
+  const BAND = {
+    plugin: 'clawd-library',
+    component: 'AbovePrompt',
+    surface: 'desktop',
+    props: { hasSurvey: false, isCollapsed: false, isWorking: false, maxRows: 10, bodyColumns: 80, scroll: { offset: 0, bodyRows: 9 } },
+  } as any
+
+  await $.command.run({ command: 'clawd-stickers', args: 'zh-TW' } as any)
+  expect(stored.stickerLang).toBe('zh-TW')
+
+  // A new session reads the choice back from the store.
+  await $.session.start({ cwd: '/', surface: 'desktop', isInteractive: true })
+  const ui: any = await $.ui.mount(BAND)
+  expect((await ui.find({ type: 'Button', key: 'stickers' }))?.props.label).toBe('✿ 貼圖')
+  await ui.press({ key: 'stickers' })
+  expect((await ui.find({ type: 'Button', key: 's-what' }))?.props.label).toBe('這是什麼意思？')
+  await ui.press({ key: 's-go' })
+  expect(fills.map(f => [f.text, f.mode])).toEqual([['繼續', 'insert']])
+  await ui.unmount()
+
+  // Back to Simplified.
+  await $.command.run({ command: 'clawd-stickers', args: 'zh-CN' } as any)
+  const again: any = await $.ui.mount(BAND)
+  expect((await again.find({ type: 'Button', key: 'stickers' }))?.props.label).toBe('✿ 表情包')
+  await again.unmount()
+})
+
 test('/clawd-theme status reports versions, apps, whether the theme draws, and backdrop requests', async ($, on) => {
   engine(on, [])
   on('session.version', () => ({ value: { version: '2.1.330' } }))
