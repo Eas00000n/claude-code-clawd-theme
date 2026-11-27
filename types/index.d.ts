@@ -38,6 +38,8 @@ declare module 'claude-code' {
       stickersOpen: Shaped<boolean>
       /** Which page of stickers the tray shows, from 0. */
       stickerPage: Shaped<number>
+      /** The sticker captions' language, set with /clawd-stickers: Simplified or Traditional Chinese. */
+      stickerLang: Shaped<'zh-CN' | 'zh-TW'>
     }
   }
 }
