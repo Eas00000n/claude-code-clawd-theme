@@ -432,7 +432,7 @@ test('/clawd-theme status reports versions, apps, whether the theme draws, and b
   await $.session.start({ cwd: '/', surface: 'desktop', isInteractive: true })
 
   let text = (await $.command.run({ command: 'clawd-theme', args: 'status' } as any)).text ?? ''
-  expect(text.includes('Clawd Library 1.0.1')).toBe(true)
+  expect(text.includes('Clawd Library 1.0.2')).toBe(true)
   expect(text.includes('Claude Code: 2.1.330 · platform: windows')).toBe(true)
   expect(text.includes('Apps attached: none')).toBe(true)
   expect(text.includes('Theme: set, an app draws themes')).toBe(true)

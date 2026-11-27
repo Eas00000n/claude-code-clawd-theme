@@ -30,7 +30,7 @@ const LAYOUT_KEY = 'layout'
 const LIMIT_KEY = 'contextLimit'
 const OFF_KEY = 'themeOff'
 /** This build's version, for /clawd-theme status. */
-export const VERSION = '1.0.1'
+export const VERSION = '1.0.2'
 
 // Change a tag when its value's fields change: it declines what an earlier
 // version stored, which outlives a reload.
